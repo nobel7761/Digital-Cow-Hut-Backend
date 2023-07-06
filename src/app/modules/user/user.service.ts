@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-expressions */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose, { SortOrder } from 'mongoose';
 import { generateUserId } from './user.utils';
 import ApiError from '../../../errors/ApiError';
@@ -105,7 +105,60 @@ const getAllUsers = async (
   };
 };
 
+const getUserById = async (id: string): Promise<IUser | null> => {
+  const result = await User.findOne({ id: id });
+  return result;
+};
+
+const updateUserById = async (
+  id: string,
+  payload: Partial<IUser>
+): Promise<IUser | null> => {
+  const isExist = await User.findOne({ id });
+
+  if (!isExist) throw new ApiError(httpStatus.NOT_FOUND, 'User Not Found');
+
+  if (payload.id) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Cannot update 'id' field.");
+  }
+
+  const { name, ...updatedData } = payload;
+
+  /*
+  const name = {
+    firstName: "Rokaiah",
+    lastName: "Sumaiah"
+  }
+  */
+
+  //dynamically handling
+  if (name && Object.keys(name).length > 0) {
+    Object.keys(name).forEach(key => {
+      const nameKey = `name.${key}`; // `name.firstName || name.lastName`
+      (updatedData as any)[nameKey] = name[key as keyof typeof name];
+    });
+  }
+
+  const result = await User.findOneAndUpdate({ id: id }, updatedData, {
+    new: true,
+  });
+  return result;
+};
+
+const deleteUserById = async (id: string): Promise<IUser | null> => {
+  const isExist = await User.findOne({ id: id });
+
+  if (!isExist) throw new ApiError(httpStatus.NOT_FOUND, 'User Not Found');
+
+  const user = await User.findOneAndDelete({ id: id });
+
+  return user;
+};
+
 export const UserService = {
   createUser,
   getAllUsers,
+  getUserById,
+  updateUserById,
+  deleteUserById,
 };
