@@ -13,8 +13,8 @@ const createUserZodSchema = z.object({
     }),
     phoneNumber: z.string({ required_error: 'Phone Number is required!' }),
     address: z.string({ required_error: 'Address is required!' }),
-    budget: z.string({ required_error: 'Budget is required!' }),
-    income: z.string({ required_error: 'Income is required!' }),
+    budget: z.number({ required_error: 'Budget is required!' }),
+    income: z.number({ required_error: 'Income is required!' }),
   }),
 });
 

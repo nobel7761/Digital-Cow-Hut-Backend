@@ -1,50 +1,50 @@
-// /* eslint-disable no-unused-expressions */
-// import mongoose from 'mongoose';
-// import { generateUserId } from './user.utils';
-// import ApiError from '../../../errors/ApiError';
-// import * as httpStatus from 'http-status';
+/* eslint-disable no-unused-expressions */
+import mongoose from 'mongoose';
+import { generateUserId } from './user.utils';
+import ApiError from '../../../errors/ApiError';
+import * as httpStatus from 'http-status';
 
-// import { IUser } from './user.interface';
-// import { User } from './user.model';
+import { IUser } from './user.interface';
+import { User } from './user.model';
 
-// const createUser = async (user: IUser): Promise<IUser | null> => {
-//   let newUserAllData = null;
-//   const session = await mongoose.startSession();
+const createUser = async (user: IUser): Promise<IUser | null> => {
+  let newUserAllData = null;
+  const session = await mongoose.startSession();
 
-//   try {
-//     session.startTransaction();
+  try {
+    session.startTransaction();
 
-//     const id = await generateUserId();
+    const id = await generateUserId();
 
-//     user.id = id;
+    user.id = id;
 
-//     //create user
-//     const newUser = await User.create([user], { session });
+    //create user
+    const newUser = await User.create([user], { session });
 
-//     if (!newUser.length) {
-//       throw new ApiError(httpStatus.BAD_REQUEST, 'Failed to create user');
-//     }
+    if (!newUser.length) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'Failed to create user');
+    }
 
-//     newUserAllData = newUser[0];
+    newUserAllData = newUser[0];
 
-//     await session.commitTransaction();
-//     await session.endSession();
-//   } catch (error) {
-//     await session.abortTransaction();
+    await session.commitTransaction();
+    await session.endSession();
+  } catch (error) {
+    await session.abortTransaction();
 
-//     await session.endSession();
+    await session.endSession();
 
-//     throw error;
-//   }
+    throw error;
+  }
 
-//   //user --> faculty --> {academicDepartment, academicFaculty}
-//   if (newUserAllData) {
-//     // newUserAllData = await User.findOne({ id: newUserAllData.id });
-//   }
+  //user --> faculty --> {academicDepartment, academicFaculty}
+  if (newUserAllData) {
+    // newUserAllData = await User.findOne({ id: newUserAllData.id });
+  }
 
-//   return newUserAllData;
-// };
+  return newUserAllData;
+};
 
-// export const UserService = {
-//   createUser,
-// };
+export const UserService = {
+  createUser,
+};

@@ -12,8 +12,8 @@ const userSchema = new Schema<IUser>(
     },
     phoneNumber: { type: String, required: true },
     address: { type: String, required: true },
-    budget: { type: String, required: true },
-    income: { type: String, required: true },
+    budget: { type: Number, required: true },
+    income: { type: Number, required: true },
   },
   {
     timestamps: true, //for getting the createdAt, updatedAt from mongoose
