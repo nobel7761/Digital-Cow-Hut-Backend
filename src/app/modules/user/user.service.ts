@@ -21,6 +21,15 @@ const createUser = async (user: IUser): Promise<IUser | null> => {
 
     user.id = id;
 
+    // Check if phoneNumber already exists
+    const existingUser = await User.findOne({ phoneNumber: user.phoneNumber });
+    if (existingUser) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        'Duplicate entry for phoneNumber'
+      );
+    }
+
     //create user
     const newUser = await User.create([user], { session });
 
@@ -38,11 +47,6 @@ const createUser = async (user: IUser): Promise<IUser | null> => {
     await session.endSession();
 
     throw error;
-  }
-
-  //user --> faculty --> {academicDepartment, academicFaculty}
-  if (newUserAllData) {
-    // newUserAllData = await User.findOne({ id: newUserAllData.id });
   }
 
   return newUserAllData;
