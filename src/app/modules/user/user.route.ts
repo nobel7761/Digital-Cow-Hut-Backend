@@ -13,12 +13,12 @@ router.post(
 
 router.get('/users', UserController.getAllUsers);
 
-router.get('/:id', UserController.getUserById);
+router.get('/users/:id', UserController.getUserById);
 
-router.delete('/:id', UserController.deleteUserById);
+router.delete('/users/:id', UserController.deleteUserById);
 
 router.patch(
-  '/:id',
+  '/users/:id',
   validateRequest(userValidation.updateUserZodSchema),
   UserController.updateUserById
 );
