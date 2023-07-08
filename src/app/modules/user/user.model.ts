@@ -3,7 +3,7 @@ import { IUser, UserModel } from './user.interface';
 
 const userSchema = new Schema<IUser>(
   {
-    id: { type: String, required: true, unique: true, immutable: true },
+    id: { type: String, required: true, unique: true, immutable: true }, //When a field is marked as immutable: true in Mongoose, it indicates that the value of that field cannot be modified once it is set. In other words, it makes the field read-only and prevents any updates to that field.
     role: { type: String, required: true },
     password: { type: String, required: true },
     name: {
