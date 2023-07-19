@@ -1,0 +1,32 @@
+// .eslintrc
+{
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 12,
+    "sourceType": "module"
+  },
+  "plugins": ["@typescript-eslint"],
+  // HERE
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "prettier"
+  ],
+
+  "rules": {
+    "no-unused-vars": "error",
+    "no-console": "warn", //this will show warning if there is any console.log in the application. use "error" for showing error.
+    "no-undef": "error", //for undefined variable
+    "no-unused-expressions": "error", //for unused expression
+    "no-unreachable": "error", //for unreachable code
+    "@typescript-eslint/consistent-type-definitions": ["error", "type"]
+  },
+
+  "env": {
+    "node": true,
+    "es2021": true
+  },
+  "globals": {
+    "process": "readonly"
+  }
+}
