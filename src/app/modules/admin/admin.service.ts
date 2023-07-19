@@ -1,14 +1,16 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { ENUM_USER_ROLE } from '../../../enums/user';
 import { IAdmin, IAdminResponse } from './admin.interface';
 import { Admin } from './admin.model';
 
-const createAdmin = async (user: IAdmin): Promise<IAdmin> => {
+const createAdmin = async (user: IAdmin): Promise<IAdminResponse | null> => {
   user.role = ENUM_USER_ROLE.ADMIN;
   const result = await Admin.create(user);
 
-  return result;
+  const response = await Admin.findById({ _id: result._id }).select(
+    '-password'
+  );
+
+  return response;
 };
 
 export const AdminService = {
