@@ -6,7 +6,9 @@ import { UserService } from './user.service';
 import pick from '../../../shared/pick';
 import { userFilterableFields } from './user.constant';
 import { paginationFields } from '../../../constants/pagination';
-import { IUser } from './user.interface';
+import { ILoginUserResponse, IUser } from './user.interface';
+import config from '../../../config';
+import { IRefreshTokenResponse } from '../admin/admin.interface';
 
 const createUser: RequestHandler = catchAsync(
   async (req: Request, res: Response) => {
@@ -21,6 +23,46 @@ const createUser: RequestHandler = catchAsync(
     });
   }
 );
+
+const loginUser = catchAsync(async (req: Request, res: Response) => {
+  const { ...loginData } = req.body;
+  const result = await UserService.loginUser(loginData);
+
+  const { refreshToken, ...others } = result as ILoginUserResponse;
+
+  // set refresh token into cookie
+  const cookieOptions = {
+    secure: config.env === 'production' ? true : false,
+    httpOnly: true, // to make sure that this cookie won't be accessible from client side
+  };
+  res.cookie('refreshToken', refreshToken, cookieOptions);
+
+  sendResponse<ILoginUserResponse>(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'User Logged In Successfully!',
+    data: others,
+  });
+});
+
+const refreshToken = catchAsync(async (req: Request, res: Response) => {
+  const { refreshToken } = req.cookies;
+  const result = await UserService.refreshToken(refreshToken);
+
+  const cookieOptions = {
+    secure: config.env === 'production',
+    httpOnly: true,
+  };
+
+  res.cookie('refreshToken', refreshToken, cookieOptions);
+
+  sendResponse<IRefreshTokenResponse>(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'User Logged In Successfully!',
+    data: result,
+  });
+});
 
 const getAllUsers = catchAsync(async (req: Request, res: Response) => {
   const filters = pick(req.query, userFilterableFields);
@@ -76,6 +118,8 @@ const deleteUserById = catchAsync(async (req: Request, res: Response) => {
 
 export const UserController = {
   createUser,
+  loginUser,
+  refreshToken,
   getAllUsers,
   getUserById,
   updateUserById,

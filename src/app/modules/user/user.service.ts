@@ -3,12 +3,21 @@ import mongoose, { SortOrder } from 'mongoose';
 import { generateUserId } from './user.utils';
 import ApiError from '../../../errors/ApiError';
 import * as httpStatus from 'http-status';
-import { IUser, IUserFilters } from './user.interface';
+import {
+  ILoginUser,
+  ILoginUserResponse,
+  IUser,
+  IUserFilters,
+} from './user.interface';
 import { User } from './user.model';
 import { IPaginationOptions } from '../../../interfaces/pagination';
 import { IGenericResponse } from '../../../interfaces/common';
 import { userSearchableFields } from './user.constant';
 import { paginationHelpers } from '../../../helpers/paginationHelpers';
+import { jwtHelpers } from '../../../helpers/jwtHelpers';
+import { Secret } from 'jsonwebtoken';
+import config from '../../../config';
+import { IRefreshTokenResponse } from '../admin/admin.interface';
 
 const createUser = async (user: IUser): Promise<IUser | null> => {
   let newUserAllData = null;
@@ -54,6 +63,77 @@ const createUser = async (user: IUser): Promise<IUser | null> => {
   );
 
   return result;
+};
+
+const loginUser = async (
+  payload: ILoginUser
+): Promise<ILoginUserResponse | null> => {
+  const { phoneNumber, password } = payload;
+
+  const isUserExist = await User.isUserExistByPhoneNumber(phoneNumber);
+
+  if (!isUserExist)
+    throw new ApiError(httpStatus.NOT_FOUND, 'User Does Not Exists');
+
+  if (
+    isUserExist.password &&
+    !(await User.isPasswordMatched(password, isUserExist?.password))
+  )
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Password Does Not Match');
+
+  // if user exists and password match then JWT will generate a token witch will be sent from server side to client side. client side will store this token in the browser(localstorage/cookies) so that when user try to login for the next(hit the url) time then user does not need to give id, password again(if the token does not expired) to login. Then we'll send this token with every single request and server will check the token. if the token is authorized then user can make request and then server will give the access through route(so we need to handle this from route level). otherwise user will get failed.
+
+  // create access token & refresh token
+  const { _id: userId, role } = isUserExist;
+
+  const accessToken = jwtHelpers.createToken(
+    { userId, role },
+    config.jwt.secret as Secret,
+    config.jwt.expires_in as string
+  );
+
+  const refreshToken = jwtHelpers.createToken(
+    { userId, role },
+    config.jwt.refresh_secret as Secret,
+    config.jwt.refresh_expires_in as string
+  );
+
+  return {
+    accessToken,
+    refreshToken,
+  };
+};
+
+const refreshToken = async (token: string): Promise<IRefreshTokenResponse> => {
+  let verifiedToken = null;
+  // verify token
+  try {
+    verifiedToken = jwtHelpers.verifyToken(
+      token,
+      config.jwt.refresh_secret as Secret
+    );
+  } catch (error) {
+    throw new ApiError(httpStatus.FORBIDDEN, 'Invalid Refresh Token');
+  }
+
+  // check user is exitst or not. sometimes it may seems that, user is deleted from the database but his/her refresh token is still in there in the browser cookie.
+  // checking deleted user's refresh token
+  const { userId } = verifiedToken;
+  const isAdminExist = await User.isUserExistByID(userId);
+
+  if (!isAdminExist)
+    throw new ApiError(httpStatus.NOT_FOUND, 'User does not exist');
+
+  //generate new token
+  const newAccessToken = jwtHelpers.createToken(
+    { _id: isAdminExist._id, role: isAdminExist.role },
+    config.jwt.secret as Secret,
+    config.jwt.expires_in as string
+  );
+
+  return {
+    accessToken: newAccessToken,
+  };
 };
 
 const getAllUsers = async (
@@ -165,6 +245,8 @@ const deleteUserById = async (id: string): Promise<IUser | null> => {
 
 export const UserService = {
   createUser,
+  loginUser,
+  refreshToken,
   getAllUsers,
   getUserById,
   updateUserById,
