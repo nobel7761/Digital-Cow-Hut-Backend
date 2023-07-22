@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import {
+  IAdmin,
   IAdminResponse,
   ILoginAdminResponse,
   IRefreshTokenResponse,
@@ -9,6 +10,7 @@ import {
 import httpStatus from 'http-status';
 import { AdminService } from './admin.service';
 import config from '../../../config';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 
 const createAdmin = catchAsync(async (req: Request, res: Response) => {
   const { ...adminData } = req.body;
@@ -62,8 +64,27 @@ const refreshToken = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getMyProfile = catchAsync(async (req: Request, res: Response) => {
+  const accessToken = req.headers.authorization as string;
+  const decodedToken = jwt.decode(accessToken, { complete: true }) as {
+    payload: JwtPayload;
+  } | null;
+  const userId = decodedToken?.payload?.userId;
+  const role = decodedToken?.payload?.role;
+
+  const result = await AdminService.getMyProfile(userId, role);
+
+  sendResponse<IAdmin>(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Admin's information retrieved successfully",
+    data: result,
+  });
+});
+
 export const AdminController = {
   createAdmin,
   loginAdmin,
   refreshToken,
+  getMyProfile,
 };

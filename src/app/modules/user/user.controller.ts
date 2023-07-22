@@ -9,6 +9,7 @@ import { paginationFields } from '../../../constants/pagination';
 import { ILoginUserResponse, IUser } from './user.interface';
 import config from '../../../config';
 import { IRefreshTokenResponse } from '../admin/admin.interface';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 
 const createUser: RequestHandler = catchAsync(
   async (req: Request, res: Response) => {
@@ -116,6 +117,42 @@ const deleteUserById = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getMyProfile = catchAsync(async (req: Request, res: Response) => {
+  const accessToken = req.headers.authorization as string;
+  const decodedToken = jwt.decode(accessToken, { complete: true }) as {
+    payload: JwtPayload;
+  } | null;
+  const userId = decodedToken?.payload?.userId;
+  const role = decodedToken?.payload?.role;
+
+  const result = await UserService.getMyProfile(userId, role);
+
+  sendResponse<IUser>(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "User's information retrieved successfully",
+    data: result,
+  });
+});
+
+// const updateMyProfile = catchAsync(async (req: Request, res: Response) => {
+//   const accessToken = req.headers.authorization as string;
+//   const decodedToken = jwt.decode(accessToken, { complete: true }) as {
+//     payload: JwtPayload;
+//   } | null;
+//   const userId = decodedToken?.payload?.userId;
+//   const role = decodedToken?.payload?.role;
+//   const updatedData = req.body;
+//   const result = await UserService.updateMyProfile(userId, role, updatedData);
+
+//   sendResponse<IUser>(res, {
+//     statusCode: httpStatus.OK,
+//     success: true,
+//     message: 'User updated successfully',
+//     data: result,
+//   });
+// });
+
 export const UserController = {
   createUser,
   loginUser,
@@ -124,4 +161,6 @@ export const UserController = {
   getUserById,
   updateUserById,
   deleteUserById,
+  getMyProfile,
+  // updateMyProfile,
 };

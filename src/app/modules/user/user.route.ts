@@ -7,6 +7,13 @@ import { ENUM_USER_ROLE } from '../../../enums/user';
 
 const router = express.Router();
 
+//get my profile
+router.get(
+  '/users/my-profile',
+  auth(ENUM_USER_ROLE.BUYER, ENUM_USER_ROLE.SELLER),
+  UserController.getMyProfile
+);
+
 // create user
 router.post(
   '/auth/signup',
@@ -44,6 +51,13 @@ router.delete(
   auth(ENUM_USER_ROLE.ADMIN),
   UserController.deleteUserById
 );
+
+// router.patch(
+//   '/users/my-profile',
+//   validateRequest(userValidation.updateUserZodSchema),
+//   auth(ENUM_USER_ROLE.BUYER, ENUM_USER_ROLE.SELLER),
+//   UserController.updateMyProfile
+// );
 
 //update user by id
 router.patch(

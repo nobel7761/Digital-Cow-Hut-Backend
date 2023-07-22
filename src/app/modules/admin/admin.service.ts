@@ -95,8 +95,21 @@ const refreshToken = async (token: string): Promise<IRefreshTokenResponse> => {
   };
 };
 
+const getMyProfile = async (
+  id: string,
+  role: string
+): Promise<IAdmin | null> => {
+  const result = await Admin.findOne({ _id: id, role: role });
+
+  if (!result)
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'You are not authorized!');
+
+  return result;
+};
+
 export const AdminService = {
   createAdmin,
   loginAdmin,
   refreshToken,
+  getMyProfile,
 };

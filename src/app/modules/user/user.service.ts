@@ -243,6 +243,47 @@ const deleteUserById = async (id: string): Promise<IUser | null> => {
   return user;
 };
 
+const getMyProfile = async (
+  id: string,
+  role: string
+): Promise<IUser | null> => {
+  const result = await User.findOne({ _id: id, role: role });
+
+  if (!result)
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'You are not authorized!');
+
+  return result;
+};
+
+// const updateMyProfile = async (
+//   id: string,
+//   role: string,
+//   payload: Partial<IUser>
+// ): Promise<IUser | null> => {
+//   const isExist = await User.findOne({ _id: id, role: role });
+
+//   if (!isExist) throw new ApiError(httpStatus.NOT_FOUND, 'User Not Found');
+
+//   if (payload.id) {
+//     throw new ApiError(httpStatus.BAD_REQUEST, "Cannot update 'id' field.");
+//   }
+
+//   const { name, password, ...updatedData } = payload;
+
+//   //dynamically handling
+//   if (name && Object.keys(name).length > 0) {
+//     Object.keys(name).forEach(key => {
+//       const nameKey = `name.${key}`; // `name.firstName || name.lastName`
+//       (updatedData as any)[nameKey] = name[key as keyof typeof name];
+//     });
+//   }
+
+//   const result = await User.findOneAndUpdate({ _id: id }, updatedData, {
+//     new: true,
+//   });
+//   return result;
+// };
+
 export const UserService = {
   createUser,
   loginUser,
@@ -251,4 +292,6 @@ export const UserService = {
   getUserById,
   updateUserById,
   deleteUserById,
+  getMyProfile,
+  // updateMyProfile,
 };
