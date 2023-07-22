@@ -6,6 +6,7 @@ import {
   IAdminResponse,
   ILoginAdmin,
   ILoginAdminResponse,
+  IRefreshTokenResponse,
 } from './admin.interface';
 import { Admin } from './admin.model';
 import ApiError from '../../../errors/ApiError';
@@ -28,7 +29,7 @@ const loginAdmin = async (
 ): Promise<ILoginAdminResponse | null> => {
   const { phoneNumber, password } = payload;
 
-  const isAdminExist = await Admin.isAdminExist(phoneNumber);
+  const isAdminExist = await Admin.isAdminExistByPhoneNumber(phoneNumber);
 
   if (!isAdminExist)
     throw new ApiError(httpStatus.NOT_FOUND, 'User Does Not Exists');
@@ -62,7 +63,40 @@ const loginAdmin = async (
   };
 };
 
+const refreshToken = async (token: string): Promise<IRefreshTokenResponse> => {
+  let verifiedToken = null;
+  // verify token
+  try {
+    verifiedToken = jwtHelpers.verifyToken(
+      token,
+      config.jwt.refresh_secret as Secret
+    );
+  } catch (error) {
+    throw new ApiError(httpStatus.FORBIDDEN, 'Invalid Refresh Token');
+  }
+
+  // check user is exitst or not. sometimes it may seems that, user is deleted from the database but his/her refresh token is still in there in the browser cookie.
+  // checking deleted user's refresh token
+  const { userId } = verifiedToken;
+  const isAdminExist = await Admin.isAdminExistByID(userId);
+
+  if (!isAdminExist)
+    throw new ApiError(httpStatus.NOT_FOUND, 'User does not exist');
+
+  //generate new token
+  const newAccessToken = jwtHelpers.createToken(
+    { _id: isAdminExist._id, role: isAdminExist.role },
+    config.jwt.secret as Secret,
+    config.jwt.expires_in as string
+  );
+
+  return {
+    accessToken: newAccessToken,
+  };
+};
+
 export const AdminService = {
   createAdmin,
   loginAdmin,
+  refreshToken,
 };

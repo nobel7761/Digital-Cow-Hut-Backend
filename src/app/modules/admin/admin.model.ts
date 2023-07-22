@@ -27,11 +27,20 @@ export const AdminSchema = new Schema<IAdmin, AdminModel>(
   }
 );
 
-AdminSchema.statics.isAdminExist = async function (
+AdminSchema.statics.isAdminExistByPhoneNumber = async function (
   phoneNumber: string
 ): Promise<Pick<IAdmin, 'phoneNumber' | 'role' | 'password'> | null> {
   return await Admin.findOne(
     { phoneNumber },
+    { _id: 1, phoneNumber: 1, role: 1, password: 1 }
+  );
+};
+
+AdminSchema.statics.isAdminExistByID = async function (
+  id: string
+): Promise<Pick<IAdmin, '_id' | 'role' | 'password' | 'phoneNumber'> | null> {
+  return await Admin.findOne(
+    { _id: id },
     { _id: 1, phoneNumber: 1, role: 1, password: 1 }
   );
 };

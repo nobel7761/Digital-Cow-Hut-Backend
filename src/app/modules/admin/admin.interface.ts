@@ -34,10 +34,19 @@ export type ILoginAdminResponse = {
   refreshToken?: string;
 };
 
+export type IRefreshTokenResponse = {
+  accessToken: string;
+};
+
 export type AdminModel = {
-  isAdminExist(
+  isAdminExistByPhoneNumber(
     phoneNumber: string
   ): Promise<Pick<IAdmin, '_id' | 'phoneNumber' | 'role' | 'password'> | null>;
+
+  isAdminExistByID(
+    id: string
+  ): Promise<Pick<IAdmin, '_id' | 'role' | 'password' | 'phoneNumber'>>;
+
   isPasswordMatched(
     givenPassword: string,
     savedPassword: string
