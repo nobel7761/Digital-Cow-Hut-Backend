@@ -86,15 +86,22 @@ const getCowById = async (id: string): Promise<ICow | null> => {
 
 const updateCowById = async (
   id: string,
+  sellerId: string,
   payload: Partial<ICow>
 ): Promise<ICow | null> => {
   const isExist = await Cow.findOne({ _id: id });
 
   if (!isExist) throw new ApiError(httpStatus.NOT_FOUND, 'Cow Not Found');
 
+  const isSellerAuthorized = await Cow.findOne({ seller: sellerId });
+
+  if (!isSellerAuthorized)
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'You are not authorized!');
+
   const result = await Cow.findOneAndUpdate({ _id: id }, payload, {
     new: true,
   });
+
   return result;
 };
 

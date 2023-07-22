@@ -7,6 +7,7 @@ import { ICow } from './cow.interface';
 import { Request, Response } from 'express';
 import { cowFilterableFields } from './cow.constant';
 import { CowService } from './cow.service';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 
 const createCow = catchAsync(async (req: Request, res: Response) => {
   const { ...cowData } = req.body;
@@ -62,7 +63,13 @@ const getCowById = catchAsync(async (req: Request, res: Response) => {
 const updateCowById = catchAsync(async (req: Request, res: Response) => {
   const id = req.params.id;
   const updatedData = req.body;
-  const result = await CowService.updateCowById(id, updatedData);
+  const accessToken = req.headers.authorization as string;
+  const decodedToken = jwt.decode(accessToken, { complete: true }) as {
+    payload: JwtPayload;
+  } | null;
+  const sellerId = decodedToken?.payload?.userId;
+
+  const result = await CowService.updateCowById(id, sellerId, updatedData);
 
   sendResponse<ICow>(res, {
     statusCode: httpStatus.OK,
