@@ -49,7 +49,11 @@ const createUser = async (user: IUser): Promise<IUser | null> => {
     throw error;
   }
 
-  return newUserAllData;
+  const result = await User.findById({ _id: newUserAllData._id }).select(
+    '-password'
+  );
+
+  return result;
 };
 
 const getAllUsers = async (
