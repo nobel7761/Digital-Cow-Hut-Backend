@@ -7,6 +7,7 @@ import { IOrder } from './order.interface';
 import { paginationFields } from '../../../constants/pagination';
 import { orderFilterableFields } from './order.constant';
 import { OrderService } from './order.service';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 
 const createOrder = catchAsync(async (req: Request, res: Response) => {
   const { ...orderData } = req.body;
@@ -21,10 +22,21 @@ const createOrder = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllOrders = catchAsync(async (req: Request, res: Response) => {
+  const accessToken = req.headers.authorization as string;
+  const decodedToken = jwt.decode(accessToken, { complete: true }) as {
+    payload: JwtPayload;
+  } | null;
+  const userId = decodedToken?.payload?.userId;
+  const role = decodedToken?.payload?.role;
   const filters = pick(req.query, orderFilterableFields);
   const paginationOptions = pick(req.query, paginationFields);
 
-  const result = await OrderService.getAllOrders(filters, paginationOptions);
+  const result = await OrderService.getAllOrders(
+    userId,
+    role,
+    filters,
+    paginationOptions
+  );
 
   sendResponse<IOrder[]>(res, {
     statusCode: httpStatus.OK,

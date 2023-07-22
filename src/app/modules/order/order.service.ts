@@ -86,6 +86,8 @@ const createOrder = async (order: IOrder): Promise<IOrder | null> => {
 };
 
 const getAllOrders = async (
+  userId: string,
+  role: string,
   filters: IOrderFilters,
   paginationOptions: IPaginationOptions
 ): Promise<IGenericResponse<IOrder[]>> => {
