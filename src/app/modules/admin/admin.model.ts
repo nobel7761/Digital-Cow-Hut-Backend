@@ -1,5 +1,8 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
 import { Schema, model } from 'mongoose';
 import { AdminModel, IAdmin } from './admin.interface';
+import config from '../../../config';
+import bcrypt from 'bcrypt';
 
 export const AdminSchema = new Schema<IAdmin, AdminModel>(
   {
@@ -23,5 +26,32 @@ export const AdminSchema = new Schema<IAdmin, AdminModel>(
     },
   }
 );
+
+AdminSchema.statics.isAdminExist = async function (
+  phoneNumber: string
+): Promise<Pick<IAdmin, 'phoneNumber' | 'role' | 'password'> | null> {
+  return await Admin.findOne(
+    { phoneNumber },
+    { _id: 1, phoneNumber: 1, role: 1, password: 1 }
+  );
+};
+
+AdminSchema.statics.isPasswordMatched = async function (
+  givenPassword: string,
+  savedPassword: string
+): Promise<boolean> {
+  return await bcrypt.compare(givenPassword, savedPassword);
+};
+
+AdminSchema.pre('save', async function (next) {
+  //! hash password
+  const admin = this;
+  admin.password = await bcrypt.hash(
+    admin.password,
+    Number(config.bcrypt_salt_rounds)
+  );
+
+  next();
+});
 
 export const Admin = model<IAdmin, AdminModel>('Admin', AdminSchema);

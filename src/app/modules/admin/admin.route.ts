@@ -3,12 +3,18 @@ import validateRequest from '../../middlewares/validateRequest';
 import { AdminController } from './admin.controller';
 import { AdminValidation } from './admin.validation';
 
-const route = express.Router();
+const router = express.Router();
 
-route.post(
+router.post(
   '/create-admin',
   validateRequest(AdminValidation.createAdminZodSchema),
   AdminController.createAdmin
 );
 
-export const AdminRoutes = route;
+router.post(
+  '/login',
+  validateRequest(AdminValidation.loginZodSchema),
+  AdminController.loginAdmin
+);
+
+export const AdminRoutes = router;
