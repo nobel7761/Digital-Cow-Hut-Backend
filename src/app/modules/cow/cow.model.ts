@@ -1,7 +1,7 @@
 import { model, Schema } from 'mongoose';
 import { CowModel, ICow } from './cow.interface';
 
-const cowSchema = new Schema<ICow>(
+const cowSchema = new Schema<ICow, CowModel>(
   {
     name: { type: String, required: true },
     age: { type: Number, required: true },
@@ -11,7 +11,7 @@ const cowSchema = new Schema<ICow>(
     weight: { type: Number, required: true },
     label: { type: String, required: true },
     category: { type: String, required: true },
-    seller: { type: String, required: true },
+    seller: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   },
   {
     timestamps: true, //for getting the createdAt, updatedAt from mongoose

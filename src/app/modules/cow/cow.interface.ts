@@ -1,4 +1,5 @@
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
+import { IUser } from '../user/user.interface';
 
 export type ICow = {
   name: string;
@@ -9,7 +10,7 @@ export type ICow = {
   weight: number;
   label: string;
   category: string;
-  seller: string;
+  seller: IUser | Types.ObjectId;
 };
 
 export type ICowFilters = {

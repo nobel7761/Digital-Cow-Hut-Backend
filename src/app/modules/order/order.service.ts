@@ -70,7 +70,14 @@ const createOrder = async (order: IOrder): Promise<IOrder | null> => {
       throw new ApiError(httpStatus.BAD_REQUEST, 'Failed to create order');
     }
 
-    newOrderAllData = newOrder[0];
+    // Use findOne() with lean() option to get the plain JavaScript object
+    const populatedOrder = await Order.findOne({ _id: newOrder[0]._id })
+      .populate('cow')
+      .populate('buyer')
+      .lean()
+      .exec();
+
+    newOrderAllData = populatedOrder;
 
     await session.commitTransaction();
     await session.endSession();
@@ -114,6 +121,27 @@ const getAllOrders = async (
     });
   }
 
+  // Adding the role-based condition for sellers
+  if (role === 'buyer') {
+    andConditions.push({
+      $and: [
+        {
+          buyer: userId,
+        },
+      ],
+    });
+  }
+
+  // if (role === 'seller') {
+  //   andConditions.push({
+  //     $and: [
+  //       {
+  //         buyer: userId,
+  //       },
+  //     ],
+  //   });
+  // }
+
   const { page, limit, skip, sortBy, sortOrder } =
     paginationHelpers.calculatePagination(paginationOptions);
 
@@ -128,9 +156,14 @@ const getAllOrders = async (
     andConditions.length > 0 ? { $and: andConditions } : {};
 
   const result = await Order.find(whereConditions)
+    .populate('cow')
+    .populate('buyer')
     .sort(sortConditions)
     .skip(skip)
     .limit(limit);
+
+  if (!result)
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'You are not authorized!');
 
   const total = await Order.countDocuments(whereConditions);
 

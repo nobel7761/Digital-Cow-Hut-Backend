@@ -10,7 +10,7 @@ import { cowSearchableFields } from './cow.constant';
 import { paginationHelpers } from '../../../helpers/paginationHelpers';
 
 const createCow = async (cow: ICow): Promise<ICow | null> => {
-  const result = await Cow.create(cow);
+  const result = (await Cow.create(cow)).populate('seller');
   return result;
 };
 
@@ -63,6 +63,7 @@ const getAllCows = async (
     andConditions.length > 0 ? { $and: andConditions } : {};
 
   const result = await Cow.find(whereConditions)
+    .populate('seller')
     .sort(sortConditions)
     .skip(skip)
     .limit(limit);
@@ -80,7 +81,7 @@ const getAllCows = async (
 };
 
 const getCowById = async (id: string): Promise<ICow | null> => {
-  const result = await Cow.findOne({ _id: id });
+  const result = await Cow.findOne({ _id: id }).populate('seller');
   return result;
 };
 
@@ -100,7 +101,7 @@ const updateCowById = async (
 
   const result = await Cow.findOneAndUpdate({ _id: id }, payload, {
     new: true,
-  });
+  }).populate('seller');
 
   return result;
 };
@@ -110,7 +111,7 @@ const deleteCowById = async (id: string): Promise<ICow | null> => {
 
   if (!isExist) throw new ApiError(httpStatus.NOT_FOUND, 'Cow Not Found');
 
-  const cow = await Cow.findOneAndDelete({ _id: id });
+  const cow = await Cow.findOneAndDelete({ _id: id }).populate('seller');
 
   return cow;
 };

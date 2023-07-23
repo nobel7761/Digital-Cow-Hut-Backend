@@ -1,10 +1,10 @@
 import { model, Schema } from 'mongoose';
 import { IOrder, OrderModel } from './order.interface';
 
-const orderSchema = new Schema<IOrder>(
+const orderSchema = new Schema<IOrder, OrderModel>(
   {
-    cow: { type: String, required: true },
-    buyer: { type: String, required: true },
+    cow: { type: Schema.Types.ObjectId, ref: 'Cow', required: true },
+    buyer: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   },
   {
     timestamps: true, //for getting the createdAt, updatedAt from mongoose

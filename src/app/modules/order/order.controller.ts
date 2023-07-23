@@ -28,8 +28,11 @@ const getAllOrders = catchAsync(async (req: Request, res: Response) => {
   } | null;
   const userId = decodedToken?.payload?.userId;
   const role = decodedToken?.payload?.role;
+
   const filters = pick(req.query, orderFilterableFields);
   const paginationOptions = pick(req.query, paginationFields);
+
+  // console.log(userId, role);
 
   const result = await OrderService.getAllOrders(
     userId,

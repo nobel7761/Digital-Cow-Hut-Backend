@@ -1,8 +1,11 @@
 import { Model } from 'mongoose';
+import { ICow } from '../cow/cow.interface';
+import { IUser } from '../user/user.interface';
+import { Types } from 'mongoose';
 
 export type IOrder = {
-  cow: string;
-  buyer: string;
+  cow: ICow | Types.ObjectId;
+  buyer: IUser | Types.ObjectId;
 };
 
 export type IOrderFilters = {
