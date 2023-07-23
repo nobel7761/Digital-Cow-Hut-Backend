@@ -18,6 +18,7 @@ import { jwtHelpers } from '../../../helpers/jwtHelpers';
 import { Secret } from 'jsonwebtoken';
 import config from '../../../config';
 import { IRefreshTokenResponse } from '../admin/admin.interface';
+import bcrypt from 'bcrypt';
 
 const createUser = async (user: IUser): Promise<IUser | null> => {
   let newUserAllData = null;
@@ -255,34 +256,43 @@ const getMyProfile = async (
   return result;
 };
 
-// const updateMyProfile = async (
-//   id: string,
-//   role: string,
-//   payload: Partial<IUser>
-// ): Promise<IUser | null> => {
-//   const isExist = await User.findOne({ _id: id, role: role });
+const updateMyProfile = async (
+  id: string,
+  role: string,
+  payload: Partial<IUser>
+): Promise<IUser | null> => {
+  const isExist = await User.findOne({ _id: id, role: role });
 
-//   if (!isExist) throw new ApiError(httpStatus.NOT_FOUND, 'User Not Found');
+  if (!isExist) throw new ApiError(httpStatus.NOT_FOUND, 'User Not Found');
 
-//   if (payload.id) {
-//     throw new ApiError(httpStatus.BAD_REQUEST, "Cannot update 'id' field.");
-//   }
+  if (payload.id) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Cannot update 'id' field.");
+  }
 
-//   const { name, password, ...updatedData } = payload;
+  const { name, ...updatedData } = payload;
 
-//   //dynamically handling
-//   if (name && Object.keys(name).length > 0) {
-//     Object.keys(name).forEach(key => {
-//       const nameKey = `name.${key}`; // `name.firstName || name.lastName`
-//       (updatedData as any)[nameKey] = name[key as keyof typeof name];
-//     });
-//   }
+  //dynamically handling
+  if (name && Object.keys(name).length > 0) {
+    Object.keys(name).forEach(key => {
+      const nameKey = `name.${key}`; // `name.firstName || name.lastName`
+      (updatedData as any)[nameKey] = name[key as keyof typeof name];
+    });
+  }
 
-//   const result = await User.findOneAndUpdate({ _id: id }, updatedData, {
-//     new: true,
-//   });
-//   return result;
-// };
+  if (updatedData.password) {
+    const hashedPassword = await bcrypt.hash(
+      updatedData.password,
+      Number(config.bcrypt_salt_rounds)
+    );
+
+    updatedData.password = hashedPassword;
+  }
+
+  const result = await User.findOneAndUpdate({ _id: id }, updatedData, {
+    new: true,
+  });
+  return result;
+};
 
 export const UserService = {
   createUser,
@@ -293,5 +303,5 @@ export const UserService = {
   updateUserById,
   deleteUserById,
   getMyProfile,
-  // updateMyProfile,
+  updateMyProfile,
 };

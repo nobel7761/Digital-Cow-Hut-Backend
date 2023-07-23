@@ -52,12 +52,12 @@ router.delete(
   UserController.deleteUserById
 );
 
-// router.patch(
-//   '/users/my-profile',
-//   validateRequest(userValidation.updateUserZodSchema),
-//   auth(ENUM_USER_ROLE.BUYER, ENUM_USER_ROLE.SELLER),
-//   UserController.updateMyProfile
-// );
+router.patch(
+  '/users/my-profile',
+  validateRequest(userValidation.updateUserZodSchema),
+  auth(ENUM_USER_ROLE.BUYER, ENUM_USER_ROLE.SELLER),
+  UserController.updateMyProfile
+);
 
 //update user by id
 router.patch(

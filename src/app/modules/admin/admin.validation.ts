@@ -13,6 +13,19 @@ const createAdminZodSchema = z.object({
   }),
 });
 
+const updateAdminZodSchema = z.object({
+  body: z.object({
+    phoneNumber: z.string().optional(),
+    role: z.string().optional(),
+    password: z.string().optional(),
+    name: z.object({
+      firstName: z.string().optional(),
+      lastName: z.string().optional(),
+    }),
+    address: z.string().optional(),
+  }),
+});
+
 const loginZodSchema = z.object({
   body: z.object({
     phoneNumber: z.string({ required_error: 'Phone Number is required!' }),
@@ -28,6 +41,7 @@ const refreshTokenZodSchema = z.object({
 
 export const AdminValidation = {
   createAdminZodSchema,
+  updateAdminZodSchema,
   loginZodSchema,
   refreshTokenZodSchema,
 };

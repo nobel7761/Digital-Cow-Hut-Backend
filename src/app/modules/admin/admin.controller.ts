@@ -82,9 +82,28 @@ const getMyProfile = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const updateMyProfile = catchAsync(async (req: Request, res: Response) => {
+  const accessToken = req.headers.authorization as string;
+  const decodedToken = jwt.decode(accessToken, { complete: true }) as {
+    payload: JwtPayload;
+  } | null;
+  const userId = decodedToken?.payload?.userId;
+  const role = decodedToken?.payload?.role;
+  const updatedData = req.body;
+  const result = await AdminService.updateMyProfile(userId, role, updatedData);
+
+  sendResponse<IAdmin>(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Admin updated successfully',
+    data: result,
+  });
+});
+
 export const AdminController = {
   createAdmin,
   loginAdmin,
   refreshToken,
   getMyProfile,
+  updateMyProfile,
 };

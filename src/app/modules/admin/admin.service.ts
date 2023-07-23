@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Secret } from 'jsonwebtoken';
 import config from '../../../config';
 import { ENUM_USER_ROLE } from '../../../enums/user';
@@ -12,6 +13,7 @@ import { Admin } from './admin.model';
 import ApiError from '../../../errors/ApiError';
 import httpStatus from 'http-status';
 import { jwtHelpers } from '../../../helpers/jwtHelpers';
+import bcrypt from 'bcrypt';
 
 const createAdmin = async (user: IAdmin): Promise<IAdminResponse | null> => {
   user.role = ENUM_USER_ROLE.ADMIN;
@@ -107,9 +109,48 @@ const getMyProfile = async (
   return result;
 };
 
+const updateMyProfile = async (
+  id: string,
+  role: string,
+  payload: Partial<IAdmin>
+): Promise<IAdmin | null> => {
+  const isExist = await Admin.findOne({ _id: id, role: role });
+
+  if (!isExist) throw new ApiError(httpStatus.NOT_FOUND, 'Admin Not Found');
+
+  if (payload._id) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Cannot update 'id' field.");
+  }
+
+  const { name, ...updatedData } = payload;
+
+  //dynamically handling
+  if (name && Object.keys(name).length > 0) {
+    Object.keys(name).forEach(key => {
+      const nameKey = `name.${key}`; // `name.firstName || name.lastName`
+      (updatedData as any)[nameKey] = name[key as keyof typeof name];
+    });
+  }
+
+  if (updatedData.password) {
+    const hashedPassword = await bcrypt.hash(
+      updatedData.password,
+      Number(config.bcrypt_salt_rounds)
+    );
+
+    updatedData.password = hashedPassword;
+  }
+
+  const result = await Admin.findOneAndUpdate({ _id: id }, updatedData, {
+    new: true,
+  });
+  return result;
+};
+
 export const AdminService = {
   createAdmin,
   loginAdmin,
   refreshToken,
   getMyProfile,
+  updateMyProfile,
 };

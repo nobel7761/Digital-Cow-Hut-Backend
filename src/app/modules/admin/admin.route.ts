@@ -35,4 +35,12 @@ router.post(
   AdminController.refreshToken
 );
 
+//update my profile
+router.patch(
+  '/my-profile',
+  validateRequest(AdminValidation.updateAdminZodSchema),
+  auth(ENUM_USER_ROLE.ADMIN),
+  AdminController.updateMyProfile
+);
+
 export const AdminRoutes = router;
