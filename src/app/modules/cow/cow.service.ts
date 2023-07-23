@@ -1,3 +1,4 @@
+import { Types } from 'mongoose';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { SortOrder } from 'mongoose';
 import ApiError from '../../../errors/ApiError';
@@ -8,8 +9,17 @@ import { IPaginationOptions } from '../../../interfaces/pagination';
 import { IGenericResponse } from '../../../interfaces/common';
 import { cowSearchableFields } from './cow.constant';
 import { paginationHelpers } from '../../../helpers/paginationHelpers';
+import { User } from '../user/user.model';
 
 const createCow = async (cow: ICow): Promise<ICow | null> => {
+  const isSellerExists = await User.findOne({
+    _id: cow.seller,
+    role: 'seller',
+  });
+
+  if (!isSellerExists)
+    throw new ApiError(httpStatus.NOT_FOUND, 'Seller Not Found!');
+
   const result = (await Cow.create(cow)).populate('seller');
   return result;
 };
@@ -94,10 +104,12 @@ const updateCowById = async (
 
   if (!isExist) throw new ApiError(httpStatus.NOT_FOUND, 'Cow Not Found');
 
-  const isSellerAuthorized = await Cow.findOne({ seller: sellerId });
+  const ObjectId = Types.ObjectId;
+  const sellerIdAsObjectId = new ObjectId(sellerId);
 
-  if (!isSellerAuthorized)
+  if (!(isExist.seller as Types.ObjectId).equals(sellerIdAsObjectId)) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'You are not authorized!');
+  }
 
   const result = await Cow.findOneAndUpdate({ _id: id }, payload, {
     new: true,
@@ -106,12 +118,22 @@ const updateCowById = async (
   return result;
 };
 
-const deleteCowById = async (id: string): Promise<ICow | null> => {
-  const isExist = await Cow.findOne({ _id: id });
+const deleteCowById = async (
+  cowId: string,
+  sellerId: string
+): Promise<ICow | null> => {
+  const isExist = await Cow.findOne({ _id: cowId });
 
   if (!isExist) throw new ApiError(httpStatus.NOT_FOUND, 'Cow Not Found');
 
-  const cow = await Cow.findOneAndDelete({ _id: id }).populate('seller');
+  const ObjectId = Types.ObjectId;
+  const sellerIdAsObjectId = new ObjectId(sellerId);
+
+  if (!(isExist.seller as Types.ObjectId).equals(sellerIdAsObjectId)) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'You are not authorized!');
+  }
+
+  const cow = await Cow.findOneAndDelete({ _id: cowId }).populate('seller');
 
   return cow;
 };

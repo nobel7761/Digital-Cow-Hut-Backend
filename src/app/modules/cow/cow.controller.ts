@@ -81,7 +81,14 @@ const updateCowById = catchAsync(async (req: Request, res: Response) => {
 
 const deleteCowById = catchAsync(async (req: Request, res: Response) => {
   const id = req.params.id;
-  const result = await CowService.deleteCowById(id);
+
+  const accessToken = req.headers.authorization as string;
+  const decodedToken = jwt.decode(accessToken, { complete: true }) as {
+    payload: JwtPayload;
+  } | null;
+  const sellerId = decodedToken?.payload?.userId;
+
+  const result = await CowService.deleteCowById(id, sellerId);
 
   sendResponse<ICow>(res, {
     statusCode: httpStatus.OK,

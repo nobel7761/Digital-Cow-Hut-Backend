@@ -28,6 +28,13 @@ const createOrder = async (order: IOrder): Promise<IOrder | null> => {
     );
   }
 
+  if (buyer && buyer.role === 'seller') {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'Wrong Request! You Have Sent Seller Id instead of a Buyer Id'
+    );
+  }
+
   if (cowPrice !== null && buyerBudget !== null && cowPrice > buyerBudget) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
@@ -66,18 +73,11 @@ const createOrder = async (order: IOrder): Promise<IOrder | null> => {
 
     const newOrder = await Order.create([order], { session });
 
-    if (!newOrder.length) {
+    if (!newOrder) {
       throw new ApiError(httpStatus.BAD_REQUEST, 'Failed to create order');
     }
 
-    // Use findOne() with lean() option to get the plain JavaScript object
-    const populatedOrder = await Order.findOne({ _id: newOrder[0]._id })
-      .populate('cow')
-      .populate('buyer')
-      .lean()
-      .exec();
-
-    newOrderAllData = populatedOrder;
+    newOrderAllData = await newOrder[0].populate('cow');
 
     await session.commitTransaction();
     await session.endSession();
