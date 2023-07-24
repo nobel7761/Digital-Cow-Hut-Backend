@@ -77,7 +77,7 @@ const createOrder = async (order: IOrder): Promise<IOrder | null> => {
       throw new ApiError(httpStatus.BAD_REQUEST, 'Failed to create order');
     }
 
-    newOrderAllData = await newOrder[0].populate('cow');
+    newOrderAllData = await newOrder[0];
 
     await session.commitTransaction();
     await session.endSession();
@@ -89,7 +89,14 @@ const createOrder = async (order: IOrder): Promise<IOrder | null> => {
     throw error;
   }
 
-  return newOrderAllData;
+  const result = await Order.findOne({ _id: newOrderAllData._id })
+    .populate({
+      path: 'cow',
+      populate: [{ path: 'seller' }],
+    })
+    .populate('buyer');
+
+  return result;
 };
 
 const getAllOrders = async (
@@ -99,6 +106,8 @@ const getAllOrders = async (
   paginationOptions: IPaginationOptions
 ): Promise<IGenericResponse<IOrder[]>> => {
   const { searchTerm, ...filtersData } = filters;
+
+  console.log('userid', userId);
 
   const andConditions = [];
 
@@ -121,7 +130,7 @@ const getAllOrders = async (
     });
   }
 
-  // Adding the role-based condition for sellers
+  // Adding the role-based condition for buyer
   if (role === 'buyer') {
     andConditions.push({
       $and: [
@@ -132,15 +141,16 @@ const getAllOrders = async (
     });
   }
 
-  // if (role === 'seller') {
-  //   andConditions.push({
-  //     $and: [
-  //       {
-  //         buyer: userId,
-  //       },
-  //     ],
-  //   });
-  // }
+  // Adding the role-based condition for seller
+  if (role === 'seller') {
+    andConditions.push({
+      $and: [
+        {
+          'cow.seller._id': userId,
+        },
+      ],
+    });
+  }
 
   const { page, limit, skip, sortBy, sortOrder } =
     paginationHelpers.calculatePagination(paginationOptions);
@@ -155,8 +165,10 @@ const getAllOrders = async (
   const whereConditions =
     andConditions.length > 0 ? { $and: andConditions } : {};
 
+  // console.log('whereConditions', whereConditions.$and[0]);
+
   const result = await Order.find(whereConditions)
-    .populate('cow')
+    .populate({ path: 'cow', populate: [{ path: 'seller' }] })
     .populate('buyer')
     .sort(sortConditions)
     .skip(skip)
