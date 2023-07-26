@@ -50,7 +50,28 @@ const getAllOrders = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getOrderById = catchAsync(async (req: Request, res: Response) => {
+  const orderId = req.params.id;
+
+  const accessToken = req.headers.authorization as string;
+  const decodedToken = jwt.decode(accessToken, { complete: true }) as {
+    payload: JwtPayload;
+  } | null;
+  const userId = decodedToken?.payload?.userId;
+  const role = decodedToken?.payload?.role;
+
+  const result = await OrderService.getOrderById(orderId, userId, role);
+
+  sendResponse<IOrder>(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Order information retrieved successfully',
+    data: result,
+  });
+});
+
 export const OrderController = {
   createOrder,
   getAllOrders,
+  getOrderById,
 };

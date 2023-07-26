@@ -10,6 +10,7 @@ import { Cow } from '../cow/cow.model';
 import ApiError from '../../../errors/ApiError';
 import httpStatus from 'http-status';
 import { label } from '../cow/cow.constant';
+import { ICow } from '../cow/cow.interface';
 
 const createOrder = async (order: IOrder): Promise<IOrder | null> => {
   let newOrderAllData = null;
@@ -21,6 +22,10 @@ const createOrder = async (order: IOrder): Promise<IOrder | null> => {
   const cowPrice: number | null = cow ? cow.price : null;
   const buyerBudget: number | null = buyer ? buyer.budget : null;
 
+  // if (!cow) {
+  //   throw new ApiError(httpStatus.NOT_FOUND, 'Cow Does Not Exists');
+  // }
+
   if (cow !== null && cow.label === label[1]) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
@@ -28,10 +33,10 @@ const createOrder = async (order: IOrder): Promise<IOrder | null> => {
     );
   }
 
-  if (buyer && buyer.role === 'seller') {
+  if (buyer && buyer.role !== 'buyer') {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
-      'Wrong Request! You Have Sent Seller Id instead of a Buyer Id'
+      'Wrong Request! Provided Buyer ID Does Not Exists!'
     );
   }
 
@@ -107,8 +112,6 @@ const getAllOrders = async (
 ): Promise<IGenericResponse<IOrder[]>> => {
   const { searchTerm, ...filtersData } = filters;
 
-  console.log('userid', userId);
-
   const andConditions = [];
 
   if (searchTerm) {
@@ -141,17 +144,6 @@ const getAllOrders = async (
     });
   }
 
-  // Adding the role-based condition for seller
-  if (role === 'seller') {
-    andConditions.push({
-      $and: [
-        {
-          'cow.seller._id': userId,
-        },
-      ],
-    });
-  }
-
   const { page, limit, skip, sortBy, sortOrder } =
     paginationHelpers.calculatePagination(paginationOptions);
 
@@ -165,19 +157,48 @@ const getAllOrders = async (
   const whereConditions =
     andConditions.length > 0 ? { $and: andConditions } : {};
 
-  // console.log('whereConditions', whereConditions.$and[0]);
+  let result = null;
+  let total = null;
 
-  const result = await Order.find(whereConditions)
-    .populate({ path: 'cow', populate: [{ path: 'seller' }] })
-    .populate('buyer')
-    .sort(sortConditions)
-    .skip(skip)
-    .limit(limit);
+  if (role === 'admin') {
+    result = await Order.find(whereConditions)
+      .populate({ path: 'cow', populate: [{ path: 'seller' }] })
+      .populate('buyer')
+      .sort(sortConditions)
+      .skip(skip)
+      .limit(limit);
+
+    total = await Order.countDocuments(whereConditions);
+  }
+
+  if (role === 'buyer') {
+    result = await Order.find(whereConditions)
+      .populate({ path: 'cow', populate: [{ path: 'seller' }] })
+      .populate('buyer')
+      .sort(sortConditions)
+      .skip(skip)
+      .limit(limit);
+
+    total = await Order.countDocuments(whereConditions);
+  }
+
+  if (role === 'seller') {
+    const orders = await Order.find({})
+      .populate({ path: 'cow', populate: [{ path: 'seller' }] })
+      .populate('buyer')
+      .sort(sortConditions)
+      .skip(skip)
+      .limit(limit);
+
+    result = orders.filter(
+      order => (order.cow as ICow).seller._id.toString() === userId
+    );
+
+    total = result.length;
+  }
 
   if (!result)
     throw new ApiError(httpStatus.UNAUTHORIZED, 'You are not authorized!');
-
-  const total = await Order.countDocuments(whereConditions);
 
   return {
     meta: {
@@ -189,7 +210,34 @@ const getAllOrders = async (
   };
 };
 
+const getOrderById = async (
+  orderId: string,
+  userId: string,
+  role: string
+): Promise<IOrder | null> => {
+  let result = null;
+  if (role === 'buyer') {
+    result = await Order.findOne({ _id: orderId, buyer: userId })
+      .populate({
+        path: 'cow',
+        populate: [{ path: 'seller' }],
+      })
+      .populate('buyer');
+  }
+  if (role === 'seller') {
+    result = await Order.findById({ _id: orderId, 'cow.seller._id': userId })
+      .populate({
+        path: 'cow',
+        populate: [{ path: 'seller' }],
+      })
+      .populate('buyer');
+  }
+
+  return result;
+};
+
 export const OrderService = {
   createOrder,
   getAllOrders,
+  getOrderById,
 };
