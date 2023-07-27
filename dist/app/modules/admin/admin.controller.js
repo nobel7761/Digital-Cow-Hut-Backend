@@ -23,29 +23,26 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UserController = void 0;
-const http_status_1 = __importDefault(require("http-status"));
+exports.AdminController = void 0;
 const catchAsync_1 = __importDefault(require("../../../shared/catchAsync"));
 const sendResponse_1 = __importDefault(require("../../../shared/sendResponse"));
-const user_service_1 = require("./user.service");
-const pick_1 = __importDefault(require("../../../shared/pick"));
-const user_constant_1 = require("./user.constant");
-const pagination_1 = require("../../../constants/pagination");
+const http_status_1 = __importDefault(require("http-status"));
+const admin_service_1 = require("./admin.service");
 const config_1 = __importDefault(require("../../../config"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const createUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const userData = req.body;
-    const result = yield user_service_1.UserService.createUser(userData);
+const createAdmin = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const adminData = __rest(req.body, []);
+    const result = yield admin_service_1.AdminService.createAdmin(adminData);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
-        message: 'User Created Successfully',
+        message: 'Admin created successfully',
         data: result,
     });
 }));
-const loginUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const loginAdmin = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const loginData = __rest(req.body, []);
-    const result = yield user_service_1.UserService.loginUser(loginData);
+    const result = yield admin_service_1.AdminService.loginAdmin(loginData);
     const _a = result, { refreshToken } = _a, others = __rest(_a, ["refreshToken"]);
     // set refresh token into cookie
     const cookieOptions = {
@@ -62,7 +59,7 @@ const loginUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void
 }));
 const refreshToken = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { refreshToken } = req.cookies;
-    const result = yield user_service_1.UserService.refreshToken(refreshToken);
+    const result = yield admin_service_1.AdminService.refreshToken(refreshToken);
     const cookieOptions = {
         secure: config_1.default.env === 'production',
         httpOnly: true,
@@ -75,60 +72,17 @@ const refreshToken = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, v
         data: result,
     });
 }));
-const getAllUsers = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const filters = (0, pick_1.default)(req.query, user_constant_1.userFilterableFields);
-    const paginationOptions = (0, pick_1.default)(req.query, pagination_1.paginationFields);
-    const result = yield user_service_1.UserService.getAllUsers(filters, paginationOptions);
-    (0, sendResponse_1.default)(res, {
-        statusCode: http_status_1.default.OK,
-        success: true,
-        message: 'Users Retrieved Successfully',
-        meta: result.meta,
-        data: result.data,
-    });
-}));
-const getUserById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const id = req.params.id;
-    const result = yield user_service_1.UserService.getUserById(id);
-    (0, sendResponse_1.default)(res, {
-        statusCode: http_status_1.default.OK,
-        success: true,
-        message: 'Single User retrieved successfully',
-        data: result,
-    });
-}));
-const updateUserById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const id = req.params.id;
-    const updatedData = req.body;
-    const result = yield user_service_1.UserService.updateUserById(id, updatedData);
-    (0, sendResponse_1.default)(res, {
-        statusCode: http_status_1.default.OK,
-        success: true,
-        message: 'User updated successfully',
-        data: result,
-    });
-}));
-const deleteUserById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const id = req.params.id;
-    const result = yield user_service_1.UserService.deleteUserById(id);
-    (0, sendResponse_1.default)(res, {
-        statusCode: http_status_1.default.OK,
-        success: true,
-        message: 'User deleted successfully',
-        data: result,
-    });
-}));
 const getMyProfile = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _b, _c;
     const accessToken = req.headers.authorization;
     const decodedToken = jsonwebtoken_1.default.decode(accessToken, { complete: true });
     const userId = (_b = decodedToken === null || decodedToken === void 0 ? void 0 : decodedToken.payload) === null || _b === void 0 ? void 0 : _b.userId;
     const role = (_c = decodedToken === null || decodedToken === void 0 ? void 0 : decodedToken.payload) === null || _c === void 0 ? void 0 : _c.role;
-    const result = yield user_service_1.UserService.getMyProfile(userId, role);
+    const result = yield admin_service_1.AdminService.getMyProfile(userId, role);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
-        message: "User's information retrieved successfully",
+        message: "Admin's information retrieved successfully",
         data: result,
     });
 }));
@@ -139,22 +93,18 @@ const updateMyProfile = (0, catchAsync_1.default)((req, res) => __awaiter(void 0
     const userId = (_d = decodedToken === null || decodedToken === void 0 ? void 0 : decodedToken.payload) === null || _d === void 0 ? void 0 : _d.userId;
     const role = (_e = decodedToken === null || decodedToken === void 0 ? void 0 : decodedToken.payload) === null || _e === void 0 ? void 0 : _e.role;
     const updatedData = req.body;
-    const result = yield user_service_1.UserService.updateMyProfile(userId, role, updatedData);
+    const result = yield admin_service_1.AdminService.updateMyProfile(userId, role, updatedData);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
-        message: 'User updated successfully',
+        message: 'Admin updated successfully',
         data: result,
     });
 }));
-exports.UserController = {
-    createUser,
-    loginUser,
+exports.AdminController = {
+    createAdmin,
+    loginAdmin,
     refreshToken,
-    getAllUsers,
-    getUserById,
-    updateUserById,
-    deleteUserById,
     getMyProfile,
     updateMyProfile,
 };

@@ -157,8 +157,8 @@ const getAllOrders = async (
   const whereConditions =
     andConditions.length > 0 ? { $and: andConditions } : {};
 
-  let result = null;
-  let total = null;
+  let result;
+  let total = 0;
 
   if (role === 'admin') {
     result = await Order.find(whereConditions)
@@ -190,9 +190,14 @@ const getAllOrders = async (
       .skip(skip)
       .limit(limit);
 
-    result = orders.filter(
-      order => (order.cow as ICow).seller._id.toString() === userId
-    );
+    result = orders.filter(order => {
+      // Check if order.cow is of type ICow
+      if ('seller' in order.cow) {
+        const sellerId = (order.cow as ICow)?.seller?._id?.toString();
+        return sellerId === userId;
+      }
+      return false; // Handle the case when order.cow is an ObjectId (or anything else)
+    });
 
     total = result.length;
   }

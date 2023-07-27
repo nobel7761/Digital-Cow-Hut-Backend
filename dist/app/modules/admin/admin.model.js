@@ -12,47 +12,51 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.User = void 0;
+exports.Admin = exports.AdminSchema = void 0;
 /* eslint-disable @typescript-eslint/no-this-alias */
 const mongoose_1 = require("mongoose");
 const config_1 = __importDefault(require("../../../config"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
-const userSchema = new mongoose_1.Schema({
-    id: { type: String, required: true, unique: true, immutable: true },
+exports.AdminSchema = new mongoose_1.Schema({
+    phoneNumber: { type: String, unique: true, required: true },
     role: { type: String, required: true },
     password: { type: String, required: true, select: 0 },
     name: {
-        firstName: { type: String, required: true },
-        lastName: { type: String, required: true },
+        required: true,
+        type: {
+            firstName: { type: String, required: true },
+            lastName: { type: String, required: true },
+        },
     },
-    phoneNumber: { type: String, required: true, unique: true },
     address: { type: String, required: true },
-    budget: { type: Number, required: true },
-    income: { type: Number, required: true },
+    profileImage: { type: String },
 }, {
-    timestamps: true, //for getting the createdAt, updatedAt from mongoose
+    timestamps: true,
+    toJSON: {
+        virtuals: true,
+    },
 });
-userSchema.statics.isUserExistByPhoneNumber = function (phoneNumber) {
+exports.AdminSchema.statics.isAdminExistByPhoneNumber = function (phoneNumber) {
     return __awaiter(this, void 0, void 0, function* () {
-        return yield exports.User.findOne({ phoneNumber }, { _id: 1, phoneNumber: 1, role: 1, password: 1 });
+        return yield exports.Admin.findOne({ phoneNumber }, { _id: 1, phoneNumber: 1, role: 1, password: 1 });
     });
 };
-userSchema.statics.isUserExistByID = function (id) {
+exports.AdminSchema.statics.isAdminExistByID = function (id) {
     return __awaiter(this, void 0, void 0, function* () {
-        return yield exports.User.findById({ _id: id }, { _id: 1, phoneNumber: 1, role: 1, password: 1 });
+        return yield exports.Admin.findOne({ _id: id }, { _id: 1, phoneNumber: 1, role: 1, password: 1 });
     });
 };
-userSchema.statics.isPasswordMatched = function (givenPassword, savedPassword) {
+exports.AdminSchema.statics.isPasswordMatched = function (givenPassword, savedPassword) {
     return __awaiter(this, void 0, void 0, function* () {
         return yield bcrypt_1.default.compare(givenPassword, savedPassword);
     });
 };
-userSchema.pre('save', function (next) {
+exports.AdminSchema.pre('save', function (next) {
     return __awaiter(this, void 0, void 0, function* () {
         //! hash password
-        const user = this;
-        user.password = yield bcrypt_1.default.hash(user.password, Number(config_1.default.bcrypt_salt_rounds));
+        const admin = this;
+        admin.password = yield bcrypt_1.default.hash(admin.password, Number(config_1.default.bcrypt_salt_rounds));
         next();
     });
 });
-exports.User = (0, mongoose_1.model)('User', userSchema);
+exports.Admin = (0, mongoose_1.model)('Admin', exports.AdminSchema);
