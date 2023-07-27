@@ -1,5 +1,5 @@
-import { Types } from 'mongoose';
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { Types } from 'mongoose';
 import { SortOrder } from 'mongoose';
 import ApiError from '../../../errors/ApiError';
 import * as httpStatus from 'http-status';
