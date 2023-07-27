@@ -1,31 +1,69 @@
-# Application Routes
+# Assignment 04
 
-> User
+# Live Link: [https://digital-cow-hut-auth-backend-sigma.vercel.app/](https://digital-cow-hut-auth-backend-sigma.vercel.app/)
 
-| Request Name      | Request Type | Route               |
-| ----------------- | ------------ | ------------------- |
-| Create User       | POST         | /api/v1/auth/signup |
-| Get All Users     | GET          | /api/v1/users       |
-| Get User By ID    | GET          | /api/v1/users/:id   |
-| Update User By ID | PATCH        | /api/v1/users/:id   |
-| Delete User By ID | DELETE       | /api/v1/users/:id   |
+# **Application Routes**
 
-> Cow
+### Main Part
 
-| Request Name     | Request Type | Route            |
-| ---------------- | ------------ | ---------------- |
-| Create Cow       | POST         | /api/v1/cows     |
-| Get All Cows     | GET          | /api/v1/cows     |
-| Get Cow By ID    | GET          | /api/v1/cows/:id |
-| Update Cow By ID | PATCH        | /api/v1/cows/:id |
-| Delete Cow By ID | DELETE       | /api/v1/cows/:id |
+> **AUTH (User)**
 
-> Pagination and Filtering Routes of Cows
+| Request       | Route                                                                           | Method |
+| ------------- | ------------------------------------------------------------------------------- | ------ |
+| Login         | https://digital-cow-hut-auth-backend-sigma.vercel.app/api/v1/auth/login         | POST   |
+| Sign Up       | https://digital-cow-hut-auth-backend-sigma.vercel.app/api/v1/auth/signup        | POST   |
+| Refresh Token | https://digital-cow-hut-auth-backend-sigma.vercel.app/api/v1/auth/refresh-token | POST   |
 
-| Request Name                           | Request Type | Route                                     |
-| -------------------------------------- | ------------ | ----------------------------------------- |
-| Page, Limit                            | GET          | api/v1/cows?page=1&limit=10               |
-| Sort By, Sort Order                    | GET          | api/v1/cows?sortBy=price&sortOrder=asc    |
-| Minimum Price, Maximum Price           | GET          | api/v1/cows?minPrice=20000&maxPrice=70000 |
-| Location                               | GET          | api/v1/cows?location=Chattogram           |
-| SearchTerm(location, breed, category ) | GET          | api/v1/cows?searchTerm=Cha                |
+> **Auth (Admin)**
+
+| Request      | Route                                                                            | Method |
+| ------------ | -------------------------------------------------------------------------------- | ------ |
+| Create Admin | https://digital-cow-hut-auth-backend-sigma.vercel.app/api/v1/admins/create-admin | POST   |
+| Login        | https://digital-cow-hut-auth-backend-sigma.vercel.app/api/v1/admins/login        | POST   |
+
+> **User**
+
+| Request            | Route                                                                                       | Method     |
+| ------------------ | ------------------------------------------------------------------------------------------- | ---------- |
+| Get All Users      | https://digital-cow-hut-auth-backend-sigma.vercel.app/api/v1/users                          | GET        |
+| Get Single User    | https://digital-cow-hut-auth-backend-sigma.vercel.app/api/v1/users/64c2d16e9d2dad47169a16dd | Single GET |
+| Update Single User | https://digital-cow-hut-auth-backend-sigma.vercel.app/api/v1/users/64c2d16e9d2dad47169a16dd | PATCH      |
+| Delete Single User | https://digital-cow-hut-auth-backend-sigma.vercel.app/api/v1/users/64c2d16e9d2dad47169a16dd | DELETE     |
+
+> **Cows**
+
+| Request           | Route                                                                                      | Method     |
+| ----------------- | ------------------------------------------------------------------------------------------ | ---------- |
+| Create Cow        | https://digital-cow-hut-auth-backend-sigma.vercel.app/api/v1/cows                          | POST       |
+| Get All Cow       | https://digital-cow-hut-auth-backend-sigma.vercel.app/api/v1/cows                          | GET        |
+| Get Single Cow    | https://digital-cow-hut-auth-backend-sigma.vercel.app/api/v1/cows/64c2d1f93ac8065561057480 | Single GET |
+| Update Single Cow | https://digital-cow-hut-auth-backend-sigma.vercel.app/api/v1/cows/64c2d1f93ac8065561057480 | PATCH      |
+| Delete Single Cow | https://digital-cow-hut-auth-backend-sigma.vercel.app/api/v1/cows/64c2d1f93ac8065561057480 | DELETE     |
+
+> **Orders**
+
+| Request        | Route                                                               | Method |
+| -------------- | ------------------------------------------------------------------- | ------ |
+| Create Order   | https://digital-cow-hut-auth-backend-sigma.vercel.app/api/v1/orders | POST   |
+| Get All Orders | https://digital-cow-hut-auth-backend-sigma.vercel.app/api/v1/orders | GET    |
+
+### **Bonus Part**
+
+> Admin
+
+| Request      | Route                                                                            | Method |
+| ------------ | -------------------------------------------------------------------------------- | ------ |
+| Create Admin | https://digital-cow-hut-auth-backend-sigma.vercel.app/api/v1/admins/create-admin | POST   |
+
+> **My Profile**
+
+| Request           | Route                                                                         | Method |
+| ----------------- | ----------------------------------------------------------------------------- | ------ |
+| Get My Profile    | https://digital-cow-hut-auth-backend-sigma.vercel.app/api/v1/users/my-profile | GET    |
+| Update My Profile | https://digital-cow-hut-auth-backend-sigma.vercel.app/api/v1/users/my-profile | PATCH  |
+
+> **Order**
+
+| Request          | Route                                                                                        | Method |
+| ---------------- | -------------------------------------------------------------------------------------------- | ------ |
+| Get Single Order | https://digital-cow-hut-auth-backend-sigma.vercel.app/api/v1/orders/64c2d25f3ac806556105748a | GET    |
