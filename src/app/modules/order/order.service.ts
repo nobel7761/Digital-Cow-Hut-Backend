@@ -160,18 +160,7 @@ const getAllOrders = async (
   let result;
   let total = 0;
 
-  if (role === 'admin') {
-    result = await Order.find(whereConditions)
-      .populate({ path: 'cow', populate: [{ path: 'seller' }] })
-      .populate('buyer')
-      .sort(sortConditions)
-      .skip(skip)
-      .limit(limit);
-
-    total = await Order.countDocuments(whereConditions);
-  }
-
-  if (role === 'buyer') {
+  if (role !== 'seller') {
     result = await Order.find(whereConditions)
       .populate({ path: 'cow', populate: [{ path: 'seller' }] })
       .populate('buyer')
