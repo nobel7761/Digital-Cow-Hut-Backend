@@ -133,8 +133,8 @@ const getAllOrders = (userId, role, filters, paginationOptions) => __awaiter(voi
         sortConditions[sortBy] = sortOrder;
     }
     const whereConditions = andConditions.length > 0 ? { $and: andConditions } : {};
-    let result = null;
-    let total = null;
+    let result;
+    let total = 0;
     if (role === 'admin') {
         result = yield order_model_1.Order.find(whereConditions)
             .populate({ path: 'cow', populate: [{ path: 'seller' }] })
@@ -160,7 +160,15 @@ const getAllOrders = (userId, role, filters, paginationOptions) => __awaiter(voi
             .sort(sortConditions)
             .skip(skip)
             .limit(limit);
-        result = orders.filter(order => order.cow.seller._id.toString() === userId);
+        result = orders.filter(order => {
+            var _a, _b, _c;
+            // Check if order.cow is of type ICow
+            if ('seller' in order.cow) {
+                const sellerId = (_c = (_b = (_a = order.cow) === null || _a === void 0 ? void 0 : _a.seller) === null || _b === void 0 ? void 0 : _b._id) === null || _c === void 0 ? void 0 : _c.toString();
+                return sellerId === userId;
+            }
+            return false; // Handle the case when order.cow is an ObjectId (or anything else)
+        });
         total = result.length;
     }
     if (!result)
